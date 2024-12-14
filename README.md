@@ -7,6 +7,24 @@
 
 ![ci-testing workflow](https://github.com/werner-duvaud/muzero-general/workflows/CI%20testing/badge.svg)
 
+# CSE564 Reinforcement Learning Project   
+This section outlines the updates made to the existing codebase as part of our project to train MuZero models on more complex games. To achieve this, we integrated three games from the [Pgx](https://www.sotets.uk/pgx/) library, which provides JAX-optimized game environments for games like Chess, Shogi, Go, and others. More importantly, the library also includes smaller-scale versions of these games. Given the limited compute resources available to us compared to those used in the original MuZero papers, we opted to train the models on these "mini" versions. These reduced state spaces allow us to train models that can effectively play chess, for example.
+
+In addition to the game files, we created scripts to compute the Elo ratings of models trained using this algorithm. By simply providing the weights of models trained at different checkpoints, you can generate full graphs showing how Elo ratings evolve across different training stages. To do so, run the following:
+```bash
+python elo.py
+```
+A support script, based on the self-play class from this repository, facilitates this process. This class provides functions to pit two agents (using only their model weights) against each other for evaluation.
+
+We also wrote scripts to generate GIFs of gameplay for these games. To do this, the game states must first be rendered during a game run. Fortunately, Pgx includes functions to render game states and save them as SVG files. We modified the game files to automatically generate and save these files in the `./viz` directory during self-play. Once the files are generated, you can create a full gameplay GIF by running:
+```bash
+python make_viz.py
+```
+
+Additionally, we are sharing some of the results and training checkpoints from this project. While we are not including the replay buffers due to their large file size, we have provided the model checkpoints, which allow others to reload and test the models.
+
+We would like to express our gratitude to the original authors of this repository for their well-maintained MuZero codebase, and to the developers of the Pgx library for providing reliable game environments.
+
 # MuZero General
 
 A commented and [documented](https://github.com/werner-duvaud/muzero-general/wiki/MuZero-Documentation) implementation of MuZero based on the Google DeepMind [paper](https://arxiv.org/abs/1911.08265) (Schrittwieser et al., Nov 2019) and the associated [pseudocode](https://arxiv.org/src/1911.08265v2/anc/pseudocode.py).

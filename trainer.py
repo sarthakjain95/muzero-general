@@ -69,7 +69,7 @@ class Trainer:
             shared_storage.get_info.remote("terminate")
         ):
             index_batch, batch = ray.get(next_batch)
-            next_batch = replay_buffer.get_batch.remote()
+            next_batch = replay_buffer.get_batch.remote() 
             self.update_lr()
             (
                 priorities,
@@ -85,16 +85,34 @@ class Trainer:
 
             # Save to the shared storage
             if self.training_step % self.config.checkpoint_interval == 0:
+                # Save model weights and optimizer state in a unique file
+                checkpoint_filename = f"checkpoint_step_{self.training_step}.pt"
+                checkpoint_data = {
+                    "weights": copy.deepcopy(self.model.get_weights()),
+                    "optimizer_state": copy.deepcopy(models.dict_to_cpu(self.optimizer.state_dict())),
+                    "training_step": self.training_step,
+                }
+                torch.save(checkpoint_data, checkpoint_filename)
+                print(f"Checkpoint saved: {checkpoint_filename}")
+
+                # Update shared storage (if needed)
                 shared_storage.set_info.remote(
                     {
                         "weights": copy.deepcopy(self.model.get_weights()),
-                        "optimizer_state": copy.deepcopy(
-                            models.dict_to_cpu(self.optimizer.state_dict())
-                        ),
+                        "optimizer_state": copy.deepcopy(models.dict_to_cpu(self.optimizer.state_dict())),
                     }
                 )
+                # shared_storage.set_info.remote(
+                #     {
+                #         "weights": copy.deepcopy(self.model.get_weights()),
+                #         "optimizer_state": copy.deepcopy(
+                #             models.dict_to_cpu(self.optimizer.state_dict())
+                #         ),
+                #     }
+                # )
                 if self.config.save_model:
                     shared_storage.save_checkpoint.remote()
+
             shared_storage.set_info.remote(
                 {
                     "training_step": self.training_step,
